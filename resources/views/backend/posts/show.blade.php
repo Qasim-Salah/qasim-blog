@@ -13,6 +13,7 @@
                 </a>
             </div>
         </div>
+
         <div class="table-responsive">
             <table class="table table-hover">
                 <tbody>
@@ -40,12 +41,11 @@
                     <tr>
                         <td colspan="4">
                             <div class="row">
-                                @if($post->media->count() > 0)
-                                    @foreach($post->media as $media)
-                                        <div class="col-2">
-                                            <img src="{{ asset('assets/posts/' . $media->file_name) }}" class="img-fluid">
-                                        </div>
-                                    @endforeach
+                                @if($post->image)
+                                    <img src="{{$post->image}}" style="width: 100px; height: 150px;"
+                                         alt=""> </a>
+                                @else
+                                    No image
                                 @endif
                             </div>
                         </td>
@@ -74,7 +74,7 @@
                 <tbody>
                 @forelse($post->comments as $comment)
                     <tr>
-                        <td><img src="{{ get_gravatar($comment->email, 50) }}" class="img-circle"></td>
+                        <td><img src="{{$post->user->image}}" class="img-circle"></td>
                         <td>{{ $comment->name }}</td>
                         <td>{!! $comment->comment !!}</td>
                         <td>{{ $comment->status() }}</td>

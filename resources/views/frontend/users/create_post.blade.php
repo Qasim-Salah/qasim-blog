@@ -1,6 +1,6 @@
 @extends('layouts.app')
 @section('style')
-    <link rel="stylesheet" href="{{ asset('frontend/js/summernote/summernote-bs4.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('Frontend/js/summernote/summernote-bs4.min.css') }}">
 @endsection
 @section('content')
 
@@ -40,7 +40,7 @@
         <div class="row pt-4">
             <div class="col-12">
                 <div class="file-loading">
-                    {!! Form::file('images[]', ['id' => 'post-images', 'multiple' => 'multiple']) !!}
+                    {!! Form::file('image', ['id' => 'image', 'multiple' => 'multiple']) !!}
                 </div>
             </div>
         </div>
@@ -55,12 +55,12 @@
     </div>
 
     <div class="col-lg-3 col-12 md-mt-40 sm-mt-40">
-                    @include('partial.frontend.users.sidebar')
-                </div>
+        @include('partial.frontend.users.sidebar')
+    </div>
 
 @endsection
 @section('script')
-    <script src="{{ asset('frontend/js/summernote/summernote-bs4.min.js') }}"></script>
+    <script src="{{ asset('Frontend/js/summernote/summernote-bs4.min.js') }}"></script>
     <script>
         $(function () {
             $('.summernote').summernote({
@@ -77,7 +77,7 @@
                 ]
             });
 
-            $('#post-images').fileinput({
+            $('#image').fileinput({
                 theme: "fa",
                 maxFileCount: 5,
                 allowedFileTypes: ['image'],

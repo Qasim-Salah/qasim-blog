@@ -1,6 +1,6 @@
-@php
-    $current_page = Route::currentRouteName();
-@endphp
+{{--@php--}}
+{{--    $current_page = Route::currentRouteName();--}}
+{{--@endphp--}}
 
 <!-- Sidebar -->
 <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
@@ -16,48 +16,96 @@
     <!-- Divider -->
     <hr class="sidebar-divider my-0">
 
+    <li class="nav-item ">
+        <a href="{{route('admin.index')}}" class="nav-link">
+            <i class=""></i>
+            <span>Dashboard</span></a>
+    </li>
+    <hr class="sidebar-divider">
 
-    @foreach($admin_side_menu as $menu)
-        @if (count($menu->appearedChildren) == 0)
-            <li class="nav-item {{ $menu->id == getParentShowOf($current_page) ? 'active' : '' }}">
-                <a href="{{ route('admin.'. $menu->as) }}" class="nav-link">
-                    <i class="{{ $menu->icon != null ? $menu->icon : 'fa fa-home' }}"></i>
-                    <span>{{ $menu->display_name }}</span></a>
-            </li>
-            <hr class="sidebar-divider">
-        @else
-            <li class="nav-item {{ in_array($menu->parent_show, [getParentShowOf($current_page), getParentOf($current_page)]) ? 'active' : '' }}">
-                <a class="nav-link {{ in_array($menu->parent_show, [getParentShowOf($current_page), getParentOf($current_page)]) ? 'collapsed' : '' }}"
-                   href="#" data-toggle="collapse" data-target="#collapse_{{ $menu->route }}"
-                   aria-expanded="{{ $menu->parent_show == getParentOf($current_page) && getParentOf($current_page) != null ? 'false' : 'true' }}"
-                   aria-controls="collapse_{{ $menu->route }}">
-                    <i class="{{ $menu->icon != null ? $menu->icon : 'fa fa-home' }}"></i>
-                    <span>{{ $menu->display_name }}</span>
-                </a>
-                @if (isset($menu->appearedChildren) && count($menu->appearedChildren) > 0)
-                    <div id="collapse_{{ $menu->route }}"
-                         class="collapse {{ in_array($menu->parent_show, [getParentShowOf($current_page), getParentOf($current_page)]) ? 'show' : '' }}"
-                         aria-labelledby="heading_{{ $menu->route }}" data-parent="#accordionSidebar">
-                        <div class="bg-white py-2 collapse-inner rounded">
-                            @foreach($menu->appearedChildren as $sub_menu)
-                                <a class="collapse-item {{ getParentOf($current_page) != null && (int)(getParentIdOf($current_page)+1) == $sub_menu->id ? 'active' : '' }}"
-                                   href="{{ route('admin.' . $sub_menu->as) }}">{{ $sub_menu->display_name }}</a>
-                            @endforeach
-                        </div>
-                    </div>
-                @endif
-            </li>
-        @endif
-    @endforeach
+    <li class="nav-item ">
+        <a href="#" class="nav-link">
+            <i class=""></i>
+            <span>Posts</span></a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-item collapsed" href="#" data-toggle="collapse" data-target="#collapseTwo">
+            <i class="fas fa-fw fa-cog"></i>
+            <span></span>
+        </a>
+        <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
+            <div class="bg-white py-2 collapse-inner rounded">
+                @can('posts')
 
+                    <a class="collapse-item" href="{{route('admin.posts.index')}}">Posts</a>
+                @endcan
+                @can('post_comments')
 
-    <!-- Divider -->
-    <hr class="sidebar-divider d-none d-md-block">
+                    <a class="collapse-item" href="{{route('admin.post_comments.index')}}">Comments</a>
+                @endcan
+                @can('post_categories')
 
-    <!-- Sidebar Toggler (Sidebar) -->
+                    <a class="collapse-item" href="{{route('admin.post_categories.index')}}">Category</a>
+                @endcan
+
+            </div>
+        </div>
+    </li>
+    @can('pages')
+
+        <hr class="sidebar-divider">
+        <li class="nav-item ">
+            <a href="{{route('admin.pages.index')}}" class="nav-link">
+                <i class=""></i>
+                <span>Page</span></a>
+        </li>
+    @endcan
+    @can('contact_us')
+
+        <hr class="sidebar-divider">
+
+        <li class="nav-item ">
+            <a href="{{route('admin.contact_us.index')}}" class="nav-link">
+                <i class=""></i>
+                <span>Contact_us</span></a>
+        </li>
+    @endcan
+    @can('users')
+
+        <hr class="sidebar-divider">
+
+        <li class="nav-item ">
+            <a href="{{route('admin.users.index')}}" class="nav-link">
+                <i class=""></i>
+                <span>users</span></a>
+        </li>
+    @endcan
+    @can('roles')
+
+        <hr class="sidebar-divider">
+
+        <li class="nav-item ">
+            <a href="{{route('admin.roles.index')}}" class="nav-link">
+                <i class=""></i>
+                <span>Roles</span></a>
+        </li>
+    @endcan
+    @can('admins')
+
+        <hr class="sidebar-divider">
+
+        <li class="nav-item ">
+            <a href="{{route('admin.admin.index')}}" class="nav-link">
+                <i class=""></i>
+                <span>Admins</span></a>
+        </li>
+@endcan
+
+<!-- Sidebar Toggler (Sidebar) -->
     <div class="text-center d-none d-md-inline">
         <button class="rounded-circle border-0" id="sidebarToggle"></button>
     </div>
 
 </ul>
+
 <!-- End of Sidebar -->

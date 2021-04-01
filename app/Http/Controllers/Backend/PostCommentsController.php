@@ -4,18 +4,10 @@ namespace App\Http\Controllers\Backend;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\categoryRequest;
-use App\Http\Requests\CommentRequest;
-use App\Http\Requests\Story_postRequest;
-use App\Models\Category;
-use App\Models\Comment;
-use App\Models\Post;
-use App\Scopes\GlobalScope;
-use Illuminate\Http\Request;
+use App\Http\Requests\Frontend\CommentRequest;
+use App\Models\Comment as CommentModel;
+use App\Models\Post as PostModel;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Validator;
-use Intervention\Image\Facades\Image;
 use Stevebauman\Purify\Facades\Purify;
 
 class PostCommentsController extends Controller
@@ -29,7 +21,7 @@ class PostCommentsController extends Controller
         $order_by = !empty(\request()->order_by) ? \request()->order_by : 'desc';
         $limit_by = !empty(\request()->limit_by) ? \request()->limit_by : '10';
 
-        $comments = Comment::query()->withoutGlobalScope(GlobalScope::class);
+        $comments = CommentModel::query();
 
         if (!empty($keyword)) {
             $comments = $comments->where('name', 'LIKE', '%' . $keyword . '%')
@@ -45,9 +37,7 @@ class PostCommentsController extends Controller
         $comments = $comments->orderBy($sort_by, $order_by);
         $comments = $comments->paginate($limit_by);
 
-        $posts = Post:: withoutGlobalScope(GlobalScope::class)
-            ->post()
-            ->pluck('title', 'id');
+        $posts = PostModel::post()->pluck('title', 'id');
 
         return view('backend.post_comments.index', compact('comments', 'posts'));
 
@@ -71,45 +61,41 @@ class PostCommentsController extends Controller
     public function edit($id)
     {
 
-        $comment = Comment:: withoutGlobalScope(GlobalScope::class)->where('id', $id)->first();
+        $comment = CommentModel:: findOrfail($id);
         return view('backend.post_comments.edit', compact('comment'));
     }
 
     public function update(CommentRequest $request, $id)
     {
-        try {
-            $comment = Comment::withoutGlobalScope(GlobalScope::class)->where('id', $id)->first();
+        $comment = CommentModel::findOrfail($id);
 
-            if ($comment) {
-                $data['name'] = $request->name;
-                $data['email'] = $request->email;
-                $data['url'] = $request->url;
-                $data['status'] = $request->status;
-                $data['comment'] = Purify::clean($request->comment);
+        if ($comment) {
+            $data['name'] = $request->name;
+            $data['email'] = $request->email;
+            $data['url'] = $request->url;
+            $data['status'] = $request->status;
+            $data['comment'] = Purify::clean($request->comment);
 
-                $comment->update($data);
-                Cache::forget('recent_comments');
-                return redirect()->route('admin.post_comments.index')->with(['message' => 'Post updated successfully', 'alert-type' => 'success',]);
-            }
-
-        } catch (\Exception $ex) {
-
-            return redirect()->route('admin.post_comments.index')->with(['message' => 'Something was wrong', 'alert-type' => 'danger',]);
+            $comment->update($data);
+            Cache::forget('recent_comments');
+            return redirect()->route('admin.post_comments.index')->with(['message' => 'Post updated successfully', 'alert-type' => 'success',]);
         }
+
+        return redirect()->route('admin.post_comments.index')->with(['message' => 'Something was wrong', 'alert-type' => 'danger',]);
     }
 
     public function destroy($id)
     {
-        try {
-            $comment = Comment:: withoutGlobalScope(GlobalScope::class)->where('id', $id)->first();
+        $comment = CommentModel:: findOrfail($id);
+
+        if ($comment) {
 
             $comment->delete();
             return redirect()->route('admin.post_comments.index')->with(['message' => 'Post deleted successfully', 'alert-type' => 'success',]);
-
-        } catch (\Exception $ex) {
-
-            return redirect()->route('admin.post_comments.index')->with(['message' => 'Something was wrong', 'alert-type' => 'danger',]);
         }
+
+        return redirect()->route('admin.post_comments.index')->with(['message' => 'Something was wrong', 'alert-type' => 'danger',]);
+
     }
 
 }

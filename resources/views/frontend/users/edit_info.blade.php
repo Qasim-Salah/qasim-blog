@@ -46,16 +46,16 @@
         </div>
 
         <div class="row">
-            @if (auth()->user()->user_image != '')
+            @if (auth()->user()->image != '')
                 <div class="col-12">
-                    <img src="{{ asset('assets/users/' . auth()->user()->user_image) }}" class="img-fluid" width="150" alt="{{ auth()->user()->name }}">
+                    <img src="{{ auth()->user()->image }}" class="img-fluid" width="150" alt="{{ auth()->user()->name }}">
                 </div>
             @endif
             <div class="col-12">
                 <div class="form-group">
-                    {!! Form::label('user_image', 'User image') !!}
-                    {!! Form::file('user_image', ['class' => 'custom-file']) !!}
-                    @error('user_image')<span class="text-danger">{{ $message }}</span>@enderror
+                    {!! Form::label('image', 'User image') !!}
+                    {!! Form::file('image', ['class' => 'custom-file']) !!}
+                    @error('image')<span class="text-danger">{{ $message }}</span>@enderror
                 </div>
             </div>
         </div>

@@ -25,7 +25,7 @@ class ForgotPasswordController extends Controller
         if (auth()->guest()){
             return view('frontend.auth.passwords.email');
         }
-        return redirect()->route('frontend.index');
+        return redirect()->route('Frontend.index');
 
     }
 }

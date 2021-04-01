@@ -59,9 +59,9 @@
                     {!! Form::label('Sliders', 'images') !!}
                     <br>
                     <div class="file-loading">
-                        {!! Form::file('images[]', ['id' => 'post-images', 'class' => 'file-input-overview', 'multiple' => 'multiple']) !!}
+                        {!! Form::file('image', ['id' => 'image', 'class' => 'file-input-overview', 'multiple' => 'multiple']) !!}
                         <span class="form-text text-muted">Image width should be 800px x 500px</span>
-                        @error('images')<span class="text-danger">{{ $message }}</span>@enderror
+                        @error('image')<span class="text-danger">{{ $message }}</span>@enderror
                     </div>
                 </div>
             </div>
@@ -91,7 +91,7 @@
                 ]
             });
 
-            $('#post-images').fileinput({
+            $('#image').fileinput({
                 theme: "fas",
                 maxFileCount: 5,
                 allowedFileTypes: ['image'],

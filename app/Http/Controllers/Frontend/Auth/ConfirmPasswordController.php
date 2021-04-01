@@ -27,7 +27,7 @@ class ConfirmPasswordController extends Controller
      *
      * @var string
      */
-    protected $redirectTo = '/dashboard';
+    protected $redirectTo = RouteServiceProvider::HOME;
 
     /**
      * Create a new controller instance.
@@ -46,7 +46,7 @@ class ConfirmPasswordController extends Controller
 
     protected function resetPasswordConfirmationTimeout(Request $request)
     {
-        $request->session()->put('frontend.auth.password_confirmed_at', time());
+        $request->session()->put('Frontend.auth.password_confirmed_at', time());
     }
 
 }

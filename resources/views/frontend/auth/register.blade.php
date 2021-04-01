@@ -8,18 +8,13 @@
                 <div class="col-lg-6 offset-md-3">
                     <div class="my__account__wrapper">
                         <h3 class="account__title">Register</h3>
-                        {!! Form::open(['route' => 'frontend.register', 'method' => 'post', 'files' => true]) !!}
+                        {!! Form::open(['route' => 'Frontend.register', 'method' => 'post', 'files' => true]) !!}
 
                         <div class="account__form">
                             <div class="input__box">
-                                {!! Form::label('name', 'Name *') !!}
+                                {!! Form::label('username', 'UserName *') !!}
                                 {!! Form::text('name', old('name')) !!}
                                 @error('name')<span class="text-danger">{{ $message }}</span>@enderror
-                            </div>
-                            <div class="input__box">
-                                {!! Form::label('username', 'Username *') !!}
-                                {!! Form::text('username', old('username')) !!}
-                                @error('username')<span class="text-danger">{{ $message }}</span>@enderror
                             </div>
                             <div class="input__box">
                                 {!! Form::label('email', 'Email *') !!}
@@ -43,14 +38,14 @@
                             </div>
 
                             <div class="input__box">
-                                {!! Form::label('user_image', 'User image') !!}
-                                {!! Form::file('user_image', ['class' => 'custom-file']) !!}
-                                @error('user_image')<span class="text-danger">{{ $message }}</span>@enderror
+                                {!! Form::label('image', 'image') !!}
+                                {!! Form::file('image', ['class' => 'custom-file'],old('image')) !!}
+                                @error('image')<span class="text-danger">{{ $message }}</span>@enderror
                             </div>
                             <div class="form__btn">
                                 {!! Form::button('Create account', ['type' => 'submit']) !!}
                             </div>
-                            <a class="forget_pass" href="{{ route('frontend.show_login_form') }}">Login?</a>
+                            <a class="forget_pass" href="{{ route('Frontend.show_login_form') }}">Login?</a>
                         </div>
                         {!! Form::close() !!}
                     </div>

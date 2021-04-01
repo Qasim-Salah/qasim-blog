@@ -18,8 +18,8 @@
                 <tbody>
                     <tr>
                         <td colspan="4">
-                            @if ($user->user_image != '')
-                                <img src="{{ asset('assets/users/' . $user->user_image) }}" class="img-fluid">
+                            @if ($user->image != '')
+                                <img src="{{  $user->image }}" class="img-fluid">
                             @else
                                 <img src="{{ asset('assets/users/default.png') }}" class="img-fluid">
                             @endif

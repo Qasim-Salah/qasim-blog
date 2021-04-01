@@ -26,13 +26,6 @@
                 </div>
                 <div class="col-3">
                     <div class="form-group">
-                        {!! Form::label('username', 'Username') !!}
-                        {!! Form::text('username', old('username'), ['class' => 'form-control']) !!}
-                        @error('username')<span class="text-danger">{{ $message }}</span>@enderror
-                    </div>
-                </div>
-                <div class="col-3">
-                    <div class="form-group">
                         {!! Form::label('email', 'Email') !!}
                         {!! Form::text('email', old('email'), ['class' => 'form-control']) !!}
                         @error('email')<span class="text-danger">{{ $message }}</span>@enderror
@@ -87,9 +80,9 @@
                     {!! Form::label('User Image', 'user_image') !!}
                     <br>
                     <div class="file-loading">
-                        {!! Form::file('user_image', ['id' => 'user-image', 'class' => 'file-input-overview']) !!}
+                        {!! Form::file('image', ['id' => 'user-image', 'class' => 'file-input-overview']) !!}
                         <span class="form-text text-muted">Image width should be 300px x 300px</span>
-                        @error('user_image')<span class="text-danger">{{ $message }}</span>@enderror
+                        @error('image')<span class="text-danger">{{ $message }}</span>@enderror
                     </div>
                 </div>
             </div>

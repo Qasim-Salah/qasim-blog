@@ -23,8 +23,17 @@
                 <tbody>
                 @forelse($comments as $comment)
                     <tr>
-                        <td><img src="{{ get_gravatar($comment->email, 50) }}" class="img-circle"></td>
-                        <td><a href="{!! $comment->url != '' ? $comment->url : 'javascript:void(0);' !!}" target="_blank">{{ $comment->name }}</a> {{ $comment->user_id != '' ? '(Member)' : '' }}</td>
+                        <td>
+                            @if ($comment->user->image != '')
+                                <img src="{{$comment->user['image'] }}" width="60">
+                            @else
+                                <img src="{{ asset('assets/users/default.png') }}" width="60">
+                            @endif
+                        </td>
+                        <td>
+                            <a href="{!! $comment->url != '' ? $comment->url : 'javascript:void(0);' !!}"
+                               target="_blank">{{ $comment->name }}</a> {{ $comment->user_id != '' ? '(Member)' : '' }}
+                        </td>
                         <td>
                             {!! $comment->comment !!}
                             <div class="text-muted">
@@ -35,9 +44,13 @@
                         <td>{{ $comment->created_at->format('d-m-Y h:i a') }}</td>
                         <td>
                             <div class="btn-group">
-                                <a href="{{ route('admin.post_comments.edit', $comment->id) }}" class="btn btn-primary"><i class="fa fa-edit"></i></a>
-                                <a href="javascript:void(0)" onclick="if (confirm('Are you sure to delete this comment?') ) { document.getElementById('comment-delete-{{ $comment->id }}').submit(); } else { return false; }" class="btn btn-danger"><i class="fa fa-trash"></i></a>
-                                <form action="{{ route('admin.post_comments.destroy', $comment->id) }}" method="post" id="comment-delete-{{ $comment->id }}" style="display: none;">
+                                <a href="{{ route('admin.post_comments.edit', $comment->id) }}" class="btn btn-primary"><i
+                                        class="fa fa-edit"></i></a>
+                                <a href="javascript:void(0)"
+                                   onclick="if (confirm('Are you sure to delete this comment?') ) { document.getElementById('comment-delete-{{ $comment->id }}').submit(); } else { return false; }"
+                                   class="btn btn-danger"><i class="fa fa-trash"></i></a>
+                                <form action="{{ route('admin.post_comments.destroy', $comment->id) }}" method="post"
+                                      id="comment-delete-{{ $comment->id }}" style="display: none;">
                                     @csrf
                                     @method('DELETE')
                                 </form>

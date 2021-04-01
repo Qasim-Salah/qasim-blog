@@ -5,7 +5,7 @@
         <div class="contact-form-wrap">
             <h2 class="contact__title">Get in touch</h2>
             <p>Nam liber tempor cum soluta nobis eleifend option congue nihil imperdiet doming id quod mazim placerat facer possim assum. </p>
-            {!! Form::open(['route' => 'frontend.do_contact', 'method' => 'post', 'id' => 'contact-form']) !!}
+            {!! Form::open(['route' => 'Frontend.do_contact', 'method' => 'post', 'id' => 'contact-form']) !!}
             <div class="single-contact-form">
                 {!! Form::text('name', old('name'), ['placeholder' => 'Name']) !!}
                 @error('name')<span class="text-danger">{{ $message }}</span>@enderror

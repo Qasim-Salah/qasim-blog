@@ -3,14 +3,14 @@
 
 
 #########start-authentication########ي
-Route::group(['prefix' => 'frontend', 'namespace' => 'Frontend\Auth'], function () {
+Route::group(['prefix' => 'Frontend', 'namespace' => 'Frontend\Auth'], function () {
 
-    Route::get('/login', 'LoginController@showLoginForm')->name('frontend.show_login_form');
+    Route::get('/login', 'LoginController@showLoginForm')->name('Frontend.show_login_form');
 
-    Route::post('login', 'LoginController@login')->name('frontend.login');
-    Route::post('logout', 'LoginController@logout')->name('frontend.logout');
-    Route::get('register', 'RegisterController@showRegistrationForm')->name('frontend.show_register_form');
-    Route::post('register', 'RegisterController@register')->name('frontend.register');
+    Route::post('login', 'LoginController@login')->name('Frontend.login');
+    Route::post('logout', 'LoginController@logout')->name('Frontend.logout');
+    Route::get('register', 'RegisterController@showRegistrationForm')->name('Frontend.show_register_form');
+    Route::post('register', 'RegisterController@register')->name('Frontend.register');
     Route::get('password/reset', 'ForgotPasswordController@showLinkRequestForm')->name('password.request');
     Route::post('password/email', 'ForgotPasswordController@sendResetLinkEmail')->name('password.email');
     Route::get('password/reset/{token}', 'ResetPasswordController@showResetForm')->name('password.reset');
@@ -24,6 +24,9 @@ Route::group(['prefix' => 'frontend', 'namespace' => 'Frontend\Auth'], function 
 
 ##############start-view_dash_user########
 Route::group(['prefix' => 'user', 'namespace' => 'Frontend', 'middleware' => ['verified', 'auth'], 'as' => 'users.'], function () {
+
+    Route::post('logout', 'Auth\LoginController@logout')->name('Frontend.logout');
+
 
     Route::get('/dashboard', 'UsersController@index')->name('dashboard');
 
@@ -39,7 +42,6 @@ Route::group(['prefix' => 'user', 'namespace' => 'Frontend', 'middleware' => ['v
     Route::get('/edit-post/{post_id}', 'UsersController@edit_post')->name('post.edit');
     Route::put('/edit-post/{post_id}', 'UsersController@update_post')->name('post.update');
     Route::delete('/delete-post/{post_id}', 'UsersController@destroy_post')->name('post.destroy');
-    Route::post('/delete-post-media/{media_id}', 'UsersController@destroy_post_media')->name('post.media.destroy');
 
     Route::get('/comments', 'UsersController@show_comments')->name('comments');
     Route::get('/edit-comment/{comment_id}', 'UsersController@edit_comment')->name('comment.edit');
@@ -50,7 +52,7 @@ Route::group(['prefix' => 'user', 'namespace' => 'Frontend', 'middleware' => ['v
 #########end-view_dash_user######
 
 #############start-view#############
-Route::group(['namespace' => 'Frontend', 'as' => 'frontend.'], function () {
+Route::group(['namespace' => 'Frontend', 'as' => 'Frontend.'], function () {
 
     Route::get('/', 'IndexController@index')->name('index');
     Route::get('/contact-us', 'IndexController@contact')->name('contact');

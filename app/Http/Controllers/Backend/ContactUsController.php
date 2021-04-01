@@ -3,11 +3,7 @@
 namespace App\Http\Controllers\Backend;
 
 use App\Http\Controllers\Controller;
-use App\Models\Category;
-use App\Models\Contact;
-use App\Models\Post;
-use App\Scopes\GlobalScope;
-use Illuminate\Http\Request;
+use App\Models\Contact as ContactModel;
 
 class ContactUsController extends Controller
 {
@@ -20,7 +16,7 @@ class ContactUsController extends Controller
         $order_by = !empty(\request()->order_by) ? \request()->order_by : 'desc';
         $limit_by = !empty(\request()->limit_by) ? \request()->limit_by : '10';
 
-        $messages = Contact::query();
+        $messages = ContactModel::query();
         if (!empty($keyword)) {
             $messages = $messages->where('name', 'LIKE', '%' . $keyword . '%');
         }
@@ -39,7 +35,7 @@ class ContactUsController extends Controller
     public function show($id)
     {
 
-        $message = Contact::where('id', $id)->first();
+        $message = ContactModel::findOrfail($id);
         if ($message && $message->status == 0) {
             $message->status = 1;
             $message->save();
@@ -49,17 +45,15 @@ class ContactUsController extends Controller
 
     public function destroy($id)
     {
-        try {
-            $message = Contact::where('id', $id)->first();
+        $message = ContactModel::findOrfail($id);
 
-            if ($message) {
-                $message->delete();
+        if ($message) {
+            $message->delete();
 
-                return redirect()->route('admin.contact_us.index')->with(['message' => 'Post deleted successfully', 'alert-type' => 'success',]);
-            }
-        } catch (\Exception $ex) {
-
-            return redirect()->route('admin.contact_us.index')->with(['message' => 'Something was wrong', 'alert-type' => 'danger',]);
+            return redirect()->route('admin.contact_us.index')->with(['message' => 'Post deleted successfully', 'alert-type' => 'success',]);
         }
+
+        return redirect()->route('admin.contact_us.index')->with(['message' => 'Something was wrong', 'alert-type' => 'danger',]);
+
     }
 }

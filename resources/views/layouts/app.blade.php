@@ -27,13 +27,13 @@
 
     <!-- Styles -->
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
-    <link rel="stylesheet" href="{{ asset('frontend/css/plugins.css') }}">
-    <link rel="stylesheet" href="{{ asset('frontend/css/style.css') }}">
-    <link href="{{ asset('frontend/js/bootstrap-fileinput/css/fileinput.min.css') }}" media="all" rel="stylesheet"
+    <link rel="stylesheet" href="{{ asset('Frontend/css/plugins.css') }}">
+    <link rel="stylesheet" href="{{ asset('Frontend/css/style.css') }}">
+    <link href="{{ asset('Frontend/js/bootstrap-fileinput/css/fileinput.min.css') }}" media="all" rel="stylesheet"
           type="text/css"/>
 
     <!-- Modernizer js -->
-    <script src="{{ asset('frontend/js/vendor/modernizr-3.5.0.min.js') }}"></script>
+    <script src="{{ asset('Frontend/js/vendor/modernizr-3.5.0.min.js') }}"></script>
 
     @yield('style')
 </head>
@@ -63,18 +63,18 @@
 
 <!-- Scripts -->
 <script src="{{ asset('js/app.js') }}"></script>
-<script src="{{ asset('frontend/js/plugins.js') }}"></script>
-<script src="{{ asset('frontend/js/active.js') }}"></script>
+<script src="{{ asset('Frontend/js/plugins.js') }}"></script>
+<script src="{{ asset('Frontend/js/active.js') }}"></script>
 
-<script src="{{ asset('frontend/js/bootstrap-fileinput/js/plugins/piexif.min.js') }}"></script>
-<script src="{{ asset('frontend/js/bootstrap-fileinput/js/plugins/sortable.min.js') }}"></script>
-<script src="{{ asset('frontend/js/bootstrap-fileinput/js/plugins/purify.min.js') }}"></script>
+<script src="{{ asset('Frontend/js/bootstrap-fileinput/js/plugins/piexif.min.js') }}"></script>
+<script src="{{ asset('Frontend/js/bootstrap-fileinput/js/plugins/sortable.min.js') }}"></script>
+<script src="{{ asset('Frontend/js/bootstrap-fileinput/js/plugins/purify.min.js') }}"></script>
 
-<script src="{{ asset('frontend/js/bootstrap-fileinput/js/fileinput.min.js') }}"></script>
-<script src="{{ asset('frontend/js/bootstrap-fileinput/themes/fa/theme.js') }}"></script>
+<script src="{{ asset('Frontend/js/bootstrap-fileinput/js/fileinput.min.js') }}"></script>
+<script src="{{ asset('Frontend/js/bootstrap-fileinput/themes/fa/theme.js') }}"></script>
 
 
-<script src="{{ asset('frontend/js/custom.js') }}"></script>
+<script src="{{ asset('Frontend/js/custom.js') }}"></script>
 @yield('script')
 </body>
 </html>

@@ -2,11 +2,9 @@
 
 namespace App\Providers;
 
-use App\Models\Category;
-use App\Models\Comment;
-use App\Models\Permission;
-use App\Models\Post;
-use App\Scopes\GlobalScope;
+use App\Models\Category as CategoryModel;
+use App\Models\Comment as CommentModel;
+use App\Models\Post as PostModel;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -36,7 +34,14 @@ class ViewServiceProvider extends ServiceProvider
             view()->composer('*', function ($view) {
 
                 if (!Cache::has('recent_posts')) {
-                    $recent_posts = Post::with(['category', 'media', 'user'])->post()->limit(5)->get();
+                    $recent_posts = PostModel::with(['user', 'category'])
+                        ->whereHas('category', function ($q) {
+                            $q->active();
+                        })->
+                        whereHas('user', function ($q) {
+                            $q->active();
+                        })->
+                        post()->orderBy('id', 'desc')->limit(5)->get();
 
                     Cache::remember('recent_posts', 3600, function () use ($recent_posts) {
                         return $recent_posts;
@@ -46,7 +51,7 @@ class ViewServiceProvider extends ServiceProvider
 
 
                 if (!Cache::has('recent_comments')) {
-                    $recent_comments = Comment::limit(5)->get();
+                    $recent_comments = CommentModel::active()->orderBy('id', 'desc')->limit(5)->get();
 
                     Cache::remember('recent_comments', 3600, function () use ($recent_comments) {
                         return $recent_comments;
@@ -56,7 +61,7 @@ class ViewServiceProvider extends ServiceProvider
 
 
                 if (!Cache::has('global_categories')) {
-                    $global_categories = Category::get();
+                    $global_categories = CategoryModel::Active()->orderBy('id', 'desc')->get();
 
                     Cache::remember('global_categories', 3600, function () use ($global_categories) {
                         return $global_categories;
@@ -66,7 +71,7 @@ class ViewServiceProvider extends ServiceProvider
 
 
                 if (!Cache::has('global_archives')) {
-                    $global_archives = Post::orderBy('created_at', 'desc')
+                    $global_archives = PostModel::active()->orderBy('created_at', 'desc')
                         ->select(DB::raw("Year(created_at) as year"), DB::raw("Month(created_at) as month"))
                         ->pluck('year', 'month')->toArray();
 
@@ -87,23 +92,5 @@ class ViewServiceProvider extends ServiceProvider
             });
 
         }
-
-        if (request()->is('admin/*')) {
-
-            view()->composer('*', function ($view) {
-
-                if (!Cache::has('admin_side_menu')) {
-                    Cache::forever('admin_side_menu', Permission::tree());
-                }
-                $admin_side_menu = Cache::get('admin_side_menu');
-
-                $view->with([
-                    'admin_side_menu' => $admin_side_menu,
-                ]);
-
-            });
-
-        }
-
     }
 }

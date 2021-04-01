@@ -32,15 +32,15 @@
                 @forelse($users as $user)
                     <tr>
                         <td>
-                            @if ($user->user_image != '')
-                                     <img src="{{ asset('assets/users/' . $user->user_image) }}" width="60">
+                            @if ($user->image != '')
+                                <img src="{{  $user->image }}" width="60">
                             @else
                                 <img src="{{ asset('assets/users/default.png') }}" width="60">
                             @endif
                         </td>
                         <td>
                             <a href="{{ route('admin.users.show', $user->id) }}">{{ $user->name }}</a>
-                            <p class="text-gray-400"><b>{{ $user->username }}</b></p>
+                            <p class="text-gray-400"><b>{{ $user->name }}</b></p>
                         </td>
                         <td>
                             {{ $user->email }}
@@ -50,9 +50,13 @@
                         <td>{{ $user->created_at->format('d-m-Y h:i a') }}</td>
                         <td>
                             <div class="btn-group">
-                                <a href="{{ route('admin.users.edit', $user->id) }}" class="btn btn-primary"><i class="fa fa-edit"></i></a>
-                                <a href="javascript:void(0)" onclick="if (confirm('Are you sure to delete this user?') ) { document.getElementById('user-delete-{{ $user->id }}').submit(); } else { return false; }" class="btn btn-danger"><i class="fa fa-trash"></i></a>
-                                <form action="{{ route('admin.users.destroy', $user->id) }}" method="post" id="user-delete-{{ $user->id }}" style="display: none;">
+                                <a href="{{ route('admin.users.edit', $user->id) }}" class="btn btn-primary"><i
+                                        class="fa fa-edit"></i></a>
+                                <a href="javascript:void(0)"
+                                   onclick="if (confirm('Are you sure to delete this user?') ) { document.getElementById('user-delete-{{ $user->id }}').submit(); } else { return false; }"
+                                   class="btn btn-danger"><i class="fa fa-trash"></i></a>
+                                <form action="{{ route('admin.users.destroy', $user->id) }}" method="post"
+                                      id="user-delete-{{ $user->id }}" style="display: none;">
                                     @csrf
                                     @method('DELETE')
                                 </form>

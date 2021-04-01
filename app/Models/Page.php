@@ -10,6 +10,7 @@ class Page extends Model
     use Sluggable;
 
     protected $table = 'posts';
+
     protected $fillable = [
         'title',
         'slug',

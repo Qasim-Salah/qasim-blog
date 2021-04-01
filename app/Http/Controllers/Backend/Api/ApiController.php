@@ -3,10 +3,9 @@
 namespace App\Http\Controllers\Backend\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Comment;
-use App\Models\Post;
-use App\Models\User;
-use App\Scopes\GlobalScope;
+use App\Models\Comment as CommentModel;
+use App\Models\Post as PostModel;
+use App\Models\User as UserModel;
 use Illuminate\Support\Facades\DB;
 
 class ApiController extends Controller
@@ -14,13 +13,12 @@ class ApiController extends Controller
 
     public function comments_chart()
     {
-        $posts = Post::withoutGlobalScope(GlobalScope::class)->select(DB::raw('COUNT(*) as count'), DB::raw('Month(created_at) as month'))
+        $posts = PostModel::select(DB::raw('COUNT(*) as count'), DB::raw('Month(created_at) as month'))
             ->whereYear('created_at', date('Y'))
             ->groupBy(DB::raw('Month(created_at)'))
             ->pluck('count', 'month');
 
-        $comments = Comment::withoutGlobalScope(GlobalScope::class)
-            ->select(DB::raw('COUNT(*) as count'), DB::raw('Month(created_at) as month'))
+        $comments = CommentModel::select(DB::raw('COUNT(*) as count'), DB::raw('Month(created_at) as month'))
             ->whereYear('created_at', date('Y'))
             ->groupBy(DB::raw('Month(created_at)'))
             ->pluck('count', 'month');
@@ -42,8 +40,7 @@ class ApiController extends Controller
     public function users_chart()
     {
 
-        $users = User::withoutGlobalScope(GlobalScope::class)
-            ->withCount('posts')
+        $users = UserModel::withCount('posts')
             ->orderBy('posts_count', 'desc')
             ->take(3)
             ->pluck('posts_count', 'name');

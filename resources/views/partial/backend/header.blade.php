@@ -17,10 +17,13 @@
 
         <!-- Nav Item - User Information -->
         <li class="nav-item dropdown no-arrow">
-            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                <span class="mr-2 d-none d-lg-inline text-gray-600 small">{{auth()->user()->name}}</span>
-                @if (auth()->user()->user_image != '')
-                    <img class="img-profile rounded-circle" src="{{asset('assets/users/'.auth()->user()->user_image )}}">
+            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown"
+               aria-haspopup="true" aria-expanded="false">
+                <span
+                    class="mr-2 d-none d-lg-inline text-gray-600 small">{{ auth('admin')->user()->name}}</span>
+                @if (auth()->guard('admin')->user()->image != '')
+                    <img class="img-profile rounded-circle"
+                         src="{{auth()->guard('admin')->user()->image}}">
                 @else
                     <img class="img-profile rounded-circle" src="{{ asset('assets/users/default.png') }}">
                 @endif
@@ -32,7 +35,8 @@
                     Profile
                 </a>
                 <div class="dropdown-divider"></div>
-                <a class="dropdown-item" href="javascript:void(0);" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                <a class="dropdown-item" href="javascript:void(0);"
+                   onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
                     <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
                     Logout
                 </a>

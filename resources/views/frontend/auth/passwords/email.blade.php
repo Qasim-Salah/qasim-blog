@@ -18,7 +18,7 @@
                             <div class="form__btn">
                                 {!! Form::button('Send Password Reset Link', ['type' => 'submit']) !!}
                             </div>
-                            <a class="forget_pass" href="{{ route('frontend.show_login_form') }}">Login?</a>
+                            <a class="forget_pass" href="{{ route('Frontend.show_login_form') }}">Login?</a>
                         </div>
                         {!! Form::close() !!}
                     </div>

@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class Admin extends Authenticatable
@@ -10,19 +9,9 @@ class Admin extends Authenticatable
 
 
     protected $table = 'admins';
-    protected $fillable = ['name', 'email', 'password','role_id'];
+    protected $fillable = ['name', 'email', 'status', 'image', 'password', 'role_id'];
 
     public $timestamps = true;
-
-
-
-
-//    protected static function boot()
-//    {
-//        parent::boot();
-//        static::addGlobalScope(new GlobalScope);
-//        static::addGlobalScope(new GlobalScopeID);
-//    }
 
     public function receivesBroadcastNotificationsOn()
     {
@@ -39,9 +28,9 @@ class Admin extends Authenticatable
         return $this->hasMany('App\Models\Comment', 'user_id', 'id');
     }
 
-    public function roles()
+    public function role()
     {
-        return $this->belongsTo('App\Models\Role', 'role_id', 'id');
+        return $this->belongsTo(Role::class, 'role_id');
     }
 
     public function status()
@@ -49,9 +38,28 @@ class Admin extends Authenticatable
         return $this->status == '1' ? 'Active' : 'Inactive';
     }
 
-    public function userImage()
+    public function getImageAttribute($val)
     {
-        return $this->user_image != '' ? asset('assets/users/' . $this->user_image) : asset('assets/users/default.png');
+        return ($val !== null) ? asset('assets/admins/' . $val) : "";
     }
+    public function hasAbility($permissions)    //products  //mahoud -> admin can't see brands
+    {
+        $role = $this->role;
+
+        if (!$role) {
+            return false;
+        }
+
+        foreach ($role->permissions as $permission) {
+            if (is_array($permissions) && in_array($permission, $permissions)) {
+                return true;
+            } else if (is_string($permissions) && strcmp($permissions, $permission) == 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
 
 }
