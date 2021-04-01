@@ -27,7 +27,7 @@ class VerificationController extends Controller
      *
      * @var string
      */
-    protected $redirectTo = '/dashboard';
+    protected $redirectTo = RouteServiceProvider::HOME;
 
     /**
      * Create a new controller instance.
@@ -53,7 +53,7 @@ class VerificationController extends Controller
 
         $request->user()->update(['status' => 1]);
 
-        return redirect()->route('frontend.index')->with([
+        return redirect()->route('Frontend.index')->with([
             'message' => 'Your account is activated successfully.',
             'alert-type' => 'success'
         ]);

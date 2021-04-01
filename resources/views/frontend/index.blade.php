@@ -6,24 +6,26 @@
             @forelse($posts as $post)
                 <article class="blog__post d-flex flex-wrap">
                     <div class="thumb">
-                        <a href="{{ route('frontend.posts.show', $post->slug) }}">
+                        <a href="{{ route('Frontend.posts.show', $post->slug) }}">
                             @if($post->image)
-                                <img src="{{$post>image}}" style="width: 413px; height: 278px;"
-                                     alt="{{ $post->title }}"> </a>
+                                <img src="{{$post->image}}" style="width: 400px; height: 250px;"
+                                     alt=""> </a>
                         @else
                             <img src="{{ asset('assets/posts/default.jpg') }}" alt="blog images">
                         @endif
                     </div>
                     <div class="content">
-                        <h4><a href="{{ route('frontend.posts.show', $post->slug) }}">{{ $post->title }}</a></h4>
+                        <h4><a href="{{ route('Frontend.posts.show', $post->slug) }}">{{ $post->title }}</a></h4>
                         <ul class="post__meta">
-                            <li>Posts by : <a href="#">{{ $post->user->name }}</a></li>
+                            <li>Posts by : <a
+                                    href="{{route('Frontend.author.posts',$post->user->name)}}">{{ $post->user->name }}</a>
+                            </li>
                             <li class="post_separator">/</li>
                             <li>{{ $post->created_at->format('M d Y') }}</li>
                         </ul>
                         <p>{!! \Illuminate\Support\Str::limit($post->description, 145, '...') !!}</p>
                         <div class="blog__btn">
-                            <a href="{{ route('frontend.posts.show', $post->slug) }}">read more</a>
+                            <a href="{{ route('Frontend.posts.show', $post->slug) }}">read more</a>
                         </div>
                     </div>
                 </article>

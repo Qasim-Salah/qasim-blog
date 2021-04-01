@@ -4,31 +4,28 @@ namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
 
-
-use App\Http\Requests\CommentRequest;
-use App\Http\Requests\ContactRequest;
-use App\Models\Category;
-use App\Models\Contact;
+use App\Http\Requests\Frontend\CommentRequest;
+use App\Http\Requests\Frontend\ContactRequest;
+use App\Models\Category as CategoryModel;
+use App\Models\Contact as ContactModel;
 use App\Models\Post as PostModel;
-use App\Models\User;
+use App\Models\User as UserModel;
 use App\Notifications\NewCommentForAdminNotify;
 use App\Notifications\NewCommentForPostOwner;
-use App\Scopes\GlobalScope;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
+use Stevebauman\Purify\Purify;
 
-//use Stevebauman\Purify\Facades\Purify;
 
 class IndexController extends Controller
 {
     public function index()
     {
-        $posts = PostModel::with(['user', 'category'])
+        $posts = PostModel::active()->with(['user'])
             ->whereHas('category', function ($q) {
-                $q->where('status', 1);
+                $q->active();
             })->
             whereHas('user', function ($q) {
-                $q->where('status', 1);
+                $q->active();
             })->
             post()->orderBy('id', 'desc')->paginate(PAGINATION_COUNT);
 
@@ -38,31 +35,36 @@ class IndexController extends Controller
     public function search(Request $request)
     {
 
-        $keyword = !empty($request->keyword) ? $request->keyword : null;
-        ##GlobalScope##
-        $posts = Post::where('title', 'LIKE', '%' . $keyword . '%')->orWhere('description', 'LIKE', '%' . $keyword . '%')->with(['media', 'user']);
-        $posts = $posts->post()->paginate(PAGINATION_COUNT);
+        $keyword = ($request->keyword);
+        if ($keyword) {
+            $posts = PostModel::active()->with(['user' => function ($q) {
+                $q->active();
+            }])
+                ->where('title', 'LIKE', '%' . $keyword . '%')
+                ->orWhere('description', 'LIKE', '%' . $keyword . '%');
+            $posts = $posts->post()->paginate(PAGINATION_COUNT);
 
-        return view('frontend.index', compact('posts'));
+            return view('frontend.index', compact('posts'));
+        }
+
     }
 
     public function category($category_slug)
     {
-        try {
-            $category = Category::where('slug', $category_slug)->orWhere('id', $category_slug)->first()->id;
+        $category = CategoryModel::active()->where('slug', $category_slug)->orWhere('id', $category_slug)->first()->id;
 
-            if ($category) {
-                $posts = Post::with(['media', 'user'])
-                    ->where('category_id', $category)
-                    ->post()
-                    ->paginate(PAGINATION_COUNT);
+        if ($category) {
+            $posts = PostModel::with(['user'])
+                ->where('category_id', $category)
+                ->post()
+                ->active()
+                ->paginate(PAGINATION_COUNT);
 
-                return view('frontend.index', compact('posts'));
-            }
-        } catch (\Exception $ex) {
-
-            return redirect()->route('frontend.index');
+            return view('frontend.index', compact('posts'));
         }
+
+        return redirect()->route('Frontend.index');
+
     }
 
     public function archive($date)
@@ -71,10 +73,11 @@ class IndexController extends Controller
         $month = $exploded_date[0];
         $year = $exploded_date[1];
 
-        $posts = Post::with(['media', 'user'])
+        $posts = PostModel::with(['user'])
             ->whereMonth('created_at', $month)
             ->whereYear('created_at', $year)
             ->post()
+            ->active()
             ->paginate(PAGINATION_COUNT);
         return view('frontend.index', compact('posts'));
 
@@ -82,23 +85,25 @@ class IndexController extends Controller
 
     public function author($username)
     {
-        $user = User::where('username', $username)->first()->id;
+        $user = UserModel::active()->where('name', $username)->first()->id;
 
         if ($user) {
-            $posts = Post::with(['media', 'user'])
+            $posts = PostModel::with(['user'])
                 ->where('user_id', $user)
                 ->post()
+                ->active()
                 ->paginate(PAGINATION_COUNT);
 
             return view('frontend.index', compact('posts'));
         }
 
-        return redirect()->route('frontend.index');
+        return redirect()->route('Frontend.index');
     }
 
     public function post_show($post_slug)
     {
-        $post = PostModel::where('slug', $post_slug)->with(['category' => function ($q) {
+        $post = PostModel::active()->where('slug', $post_slug)->with
+        (['category' => function ($q) {
             $q->active();
         },
             'user' => function ($q) {
@@ -109,51 +114,52 @@ class IndexController extends Controller
             }])->first();
 
         if (!$post)
-            return redirect()->route('frontend.index');
+            return redirect()->route('Frontend.index');
 
         $blade = $post->post_type == 'post' ? 'post' : 'page';
 
         if ($blade)
-            return view('frontend.' . $blade, compact('post'));
+            return view('Frontend.' . $blade, compact('post'));
 
-        return redirect()->route('frontend.index');
+        return redirect()->route('Frontend.index');
 
     }
 
     public function store_comment(CommentRequest $request, $slug)
     {
-        try {
-            ##GlobalScope##
-            $post = Post::where('slug', $slug)->post()->first();
-            if ($post) {
+        $post = PostModel::where('slug', $slug)->post()->first();
+        if ($post) {
 
-                $userId = auth()->check() ? auth()->id() : null;
-                $data['name'] = $request->name;
-                $data['email'] = $request->email;
-                $data['url'] = $request->url;
-                $data['ip_address'] = $request->ip();
-                $data['comment'] = $request->comment;
-                $data['post_id'] = $post->id;
-                $data['user_id'] = $userId;
+            $userId = auth()->check() ? auth()->id() : null;
+            $data['name'] = $request->name;
+            $data['email'] = $request->email;
+            $data['url'] = $request->url;
+            $data['ip_address'] = $request->ip();
+            $data['comment'] = Purify::clean($request->comment);
+            $data['post_id'] = $post->id;
+            $data['user_id'] = $userId;
 
-                $comment = $post->comments()->create($data);
+            /* $comment=*/
+            $post->comments()->create($data);
+//
+//            if (auth()->guest() || auth()->id() != $post->user_id) {
+//                $post->user->notify(new NewCommentForPostOwner($comment));
+//        }
 
-                if (auth()->guest() || auth()->id() != $post->user_id) {
-                    $post->user->notify(new NewCommentForPostOwner($comment));
-                }
+//            User::whereHas('roles', function ($query) {
+//                $query->whereIn('name', ['admin']);
+//            })->each(function ($admin, $key) use ($comment) {
+//                $admin->notify(new NewCommentForAdminNotify($comment));
+//            });
 
-                User::whereHas('roles', function ($query) {
-                    $query->whereIn('name', ['admin']);
-                })->each(function ($admin, $key) use ($comment) {
-                    $admin->notify(new NewCommentForAdminNotify($comment));
-                });
-
-                return redirect()->back()->with(['message' => 'Comment added successfully', 'alert-type' => 'success']);
-            }
-        } catch (\Exception $ex) {
-
-            return redirect()->back()->with(['message' => 'Something was wrong', 'alert-type' => 'danger']);
+            return redirect()->back()->with([
+                'message' => 'Comment added successfully',
+                'alert-type' => 'success']);
         }
+
+        return redirect()->back()->with(['message' => 'Something was wrong',
+            'alert-type' => 'danger']);
+
     }
 
     public function contact()
@@ -163,21 +169,17 @@ class IndexController extends Controller
 
     public function do_contact(ContactRequest $request)
     {
-        try {
-            $data['name'] = $request->name;
-            $data['email'] = $request->email;
-            $data['mobile'] = $request->mobile;
-            $data['title'] = $request->title;
-            $data['message'] = $request->message;
+        $data['name'] = $request->name;
+        $data['email'] = $request->email;
+        $data['mobile'] = $request->mobile;
+        $data['title'] = $request->title;
+        $data['message'] = $request->message;
 
-            Contact::create($data);
-
+        if (ContactModel::create($data))
             return redirect()->back()->with(['message' => 'Message sent successfully', 'alert-type' => 'success']);
 
-        } catch (\Exception $ex) {
+        return redirect()->back()->with(['message' => 'Something was wrong', 'alert-type' => 'danger']);
 
-            return redirect()->back()->with(['message' => 'Something was wrong', 'alert-type' => 'danger']);
-        }
 
     }
 

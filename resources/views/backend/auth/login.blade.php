@@ -17,10 +17,10 @@
                                     <h1 class="h4 text-gray-900 mb-4">Welcome Back!</h1>
                                 </div>
 
-                                {!! Form::open(['route' => 'admin.show_login_form', 'method' => 'post']) !!}
+                                {!! Form::open(['route' => 'admin.login', 'method' => 'post']) !!}
                                 <div class="form-group">
-                                    {!! Form::text('username', old('username'), ['class' => 'form-control form-control-user', 'placeholder' => 'Enter your username']) !!}
-                                    @error('username') <span class="text-danger">{{ $message }}</span>@enderror
+                                    {!! Form::text('email', old('email'), ['class' => 'form-control form-control-user', 'placeholder' => 'Enter your email']) !!}
+                                    @error('email') <span class="text-danger">{{ $message }}</span>@enderror
                                 </div>
                                 <div class="form-group">
                                     {!! Form::password('password', ['class' => 'form-control form-control-user', 'placeholder' => 'Enter your password']) !!}
@@ -28,7 +28,8 @@
                                 </div>
                                 <div class="form-group">
                                     <div class="custom-control custom-checkbox small">
-                                        <input class="custom-control-input" type="checkbox" name="remember" id="remember" {{ old('remember') ? 'checked' : '' }}>
+                                        <input class="custom-control-input" type="checkbox" name="remember"
+                                               id="remember" {{ old('remember') ? 'checked' : '' }}>
                                         <label class="custom-control-label" for="remember">Remember Me</label>
                                     </div>
                                 </div>
@@ -36,9 +37,6 @@
                                 {!! Form::close() !!}
 
                                 <hr>
-                                <div class="text-center">
-                                    <a class="small" href="{{ route('password.request') }}">Forgot Password?</a>
-                                </div>
                             </div>
                         </div>
                     </div>

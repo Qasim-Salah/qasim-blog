@@ -68,9 +68,10 @@ class Post extends Model
     {
         return $this->status == 1 ? 'Active' : 'Inactive';
     }
-    public function getPhotoAttribute($val)
+
+    public function getImageAttribute($val)
     {
-        return ($val !== null) ? asset('assets/images/posts/' . $val) : "";
+        return ($val !== null) ? asset('assets/posts/' . $val) : "";
     }
 
 

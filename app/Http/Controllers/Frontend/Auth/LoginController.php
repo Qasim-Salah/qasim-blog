@@ -29,8 +29,7 @@ class LoginController extends Controller
      *
      * @var string
      */
-    protected $redirectTo = '/dashboard';
-
+    protected $redirectTo = RouteServiceProvider::HOME;
 
 
     /**
@@ -47,36 +46,5 @@ class LoginController extends Controller
     {
         return view('frontend.auth.login');
     }
-
-    public function username()
-    {
-        return 'username';
-    }
-
-    protected function authenticated(Request $request, $user)
-    {
-
-        if ($user->status == 1) {
-            $role = Auth::user()->role_id;
-            if ($role <= 2) {
-                return redirect()->route('admin.index')->with([
-                    'message' => 'Logged in successfully.',
-                    'alert-type' => 'success'
-                ]);
-            } else {
-                return redirect()->route('users.dashboard')->with([
-                    'message' => 'Logged in successfully.',
-                    'alert-type' => 'success'
-                ]);
-            }
-        }
-        return redirect()->route('frontend.index')->with([
-            'message' => 'Please contact Bloggi Admin.',
-            'alert-type' => 'warning'
-        ]);
-
-
-    }
-
 
 }

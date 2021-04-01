@@ -54,63 +54,55 @@
                     {!! Form::label('Sliders', 'images') !!}
                     <br>
                     <div class="file-loading">
-                        {!! Form::file('images[]', ['id' => 'page-images', 'class' => 'file-input-overview', 'multiple' => 'multiple']) !!}
+                        {!! Form::file('image', ['class' => 'custom-file']) !!}
                         <span class="form-text text-muted">Image width should be 800px x 500px</span>
-                        @error('images')<span class="text-danger">{{ $message }}</span>@enderror
+                        @error('image')<span class="text-danger">{{ $message }}</span>@enderror
                     </div>
                 </div>
             </div>
+            <div class="carousel-inner">
+                @if($page->image)
+                    <img src="{{$page->image}}" style="width: 400px; height: 250px;"
+                         alt=""> </a>
+                @else
+                    NO image
+                @endif
 
-            <div class="form-group pt-4">
-                {!! Form::submit('Update page', ['class' => 'btn btn-primary']) !!}
+                <div class="form-group pt-4">
+                    {!! Form::submit('Update page', ['class' => 'btn btn-primary']) !!}
+                </div>
+                {!! Form::close() !!}
             </div>
-            {!! Form::close() !!}
         </div>
-    </div>
 
-@endsection
-@section('script')
-    <script>
-        $(function () {
-            $('.summernote').summernote({
-                tabSize: 2,
-                height: 200,
-                toolbar: [
-                    ['style', ['style']],
-                    ['font', ['bold', 'underline', 'clear']],
-                    ['color', ['color']],
-                    ['para', ['ul', 'ol', 'paragraph']],
-                    ['table', ['table']],
-                    ['insert', ['link', 'picture', 'video']],
-                    ['view', ['fullscreen', 'codeview', 'help']]
-                ]
-            });
+        @endsection
+        @section('script')
+            <script>
+                $(function () {
+                    $('.summernote').summernote({
+                        tabSize: 2,
+                        height: 200,
+                        toolbar: [
+                            ['style', ['style']],
+                            ['font', ['bold', 'underline', 'clear']],
+                            ['color', ['color']],
+                            ['para', ['ul', 'ol', 'paragraph']],
+                            ['table', ['table']],
+                            ['insert', ['link', 'picture', 'video']],
+                            ['view', ['fullscreen', 'codeview', 'help']]
+                        ]
+                    });
 
-            $('#page-images').fileinput({
-                theme: "fas",
-                maxFileCount: {{ 5 - $page->media->count() }},
-                allowedFileTypes: ['image'],
-                showCancel: true,
-                showRemove: false,
-                showUpload: false,
-                overwriteInitial: false,
-                initialPreview: [
-                    @if($page->media->count() > 0)
-                        @foreach($page->media as $media)
-                            "{{ asset('assets/posts/' . $media->file_name) }}",
-                        @endforeach
-                    @endif
-                ],
-                initialPreviewAsData: true,
-                initialPreviewFileType: 'image',
-                initialPreviewConfig: [
-                    @if($page->media->count() > 0)
-                        @foreach($page->media as $media)
-                            {caption: "{{ $media->file_name }}", size: {{ $media->file_size }}, width: "120px", url: "{{ route('admin.pages.media.destroy', [$media->id, '_token' => csrf_token()]) }}", key: "{{ $media->id }}"},
-                        @endforeach
-                    @endif
-                ],
-            });
-        });
-    </script>
+
+                    $('#image').fileinput({
+                        theme: "fa",
+                        maxFileCount: 5,
+                        allowedFileTypes: ['image'],
+                        showCancel: true,
+                        showRemove: false,
+                        showUpload: false,
+                        overwriteInitial: false,
+                    });
+                });
+            </script>
 @endsection

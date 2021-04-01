@@ -11,9 +11,9 @@ class NotificationsController extends Controller
     public function getNotifications()
     {
         return [
-            'read'      => auth()->user()->readNotifications,
-            'unread'    => auth()->user()->unreadNotifications,
-            'usertype'  => auth()->user()->roles->first()->name,
+            'read' => auth()->user()->readNotifications,
+            'unread' => auth()->user()->unreadNotifications,
+            'usertype' => auth()->user()->roles->first()->name,
         ];
     }
 
@@ -27,7 +27,7 @@ class NotificationsController extends Controller
         $notification = auth()->user()->notifications->where('id', $id)->first();
         $notification->markAsRead();
 
-        if (auth()->user()->roles->first()->name == 'user') {
+        if (auth()->user()->first()) {
 
             if ($notification->type == 'App\Notifications\NewCommentForPostOwner') {
                 return redirect()->route('users.comment.edit', $notification->data['id']);
@@ -37,7 +37,6 @@ class NotificationsController extends Controller
         }
 
     }
-
 
 
 }

@@ -4,35 +4,20 @@
     <div class="col-lg-9 col-12">
         <div class="blog-details content">
             <article class="blog-post-details">
-                @if ($post->image)
+                @isset($post)
                     <div id="carouselIndicators" class="carousel slide" data-ride="carousel">
                         <ol class="carousel-indicators">
-                            @foreach($post->image as $image)
-                                <li data-target="#carouselIndicators" data-slide-to="{{ $loop->index }}"
-                                    class="{{ $loop->index == 0 ? 'active' : '' }}"></li>
-                            @endforeach
                         </ol>
 
                         <div class="carousel-inner">
-                            @foreach($post->image as $image)
-                                <div class="carousel-item {{ $loop->index == 0 ? 'active' : '' }}">
-                                    <img class="d-block w-100" src="{{ $image->image }}" alt="{{ $post->title }}">
-                                </div>
-                            @endforeach
+                            @if($post->image)
+                                <img src="{{$post->image}}" style="width: 400px; height: 250px;"
+                                     alt=""> </a>
+                            @else
+                                <img src="{{ asset('assets/posts/default.jpg') }}" alt="blog images">
+                            @endif
                         </div>
-
-                        @if ($post->image > 1)
-                            <a class="carousel-control-prev" href="#carouselIndicators" role="button" data-slide="prev">
-                                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                                <span class="sr-only">Previous</span>
-                            </a>
-                            <a class="carousel-control-next" href="#carouselIndicators" role="button" data-slide="next">
-                                <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                                <span class="sr-only">Next</span>
-                            </a>
-                        @endif
                     </div>
-                @endif
 
                 <div class="post_wrapper">
                     <div class="post_header">
@@ -40,7 +25,7 @@
                         <div class="blog-date-categori">
                             <ul>
                                 <li>{{ $post->created_at->format('M d, Y') }}</li>
-                                <li><a href="#"
+                                <li><a href="{{route('Frontend.author.posts',$post->user->name)}}"
                                        title="Posts by {{ $post->user->name }}" rel="author">{{ $post->user->name }}</a>
                                 </li>
                             </ul>
@@ -57,7 +42,7 @@
                     </ul>
                 </div>
             </article>
-
+            @endisset
             <div class="comments_area">
                 <h3 class="comment__title">{{ $post->comments->count() }} comment(s)</h3>
                 <ul class="comment__list">
@@ -65,7 +50,8 @@
                         <li>
                             <div class="wn__comment">
                                 <div class="thumb">
-                                    <img src="{{ get_gravatar($comment->email, 46) }}" alt="comment images">
+                                    <img style="width: 46px; height: 46px;"
+                                         src="{{$post->user->image}} alt=comment images">
                                 </div>
                                 <div class="content">
                                     <div class="comnt__author d-block d-sm-flex">
@@ -86,7 +72,7 @@
             <div class="comment_respond">
                 <h3 class="reply_title">Leave a Reply <small></small></h3>
 
-                {!! Form::open(['route' => ['frontend.posts.add_comment', $post->slug], 'method' => 'post', 'class' => 'comment__form']) !!}
+                {!! Form::open(['route' => ['Frontend.posts.add_comment', $post->slug], 'method' => 'post', 'class' => 'comment__form']) !!}
                 <p>Your email address will not be published.Required fields are marked </p>
                 <div class="input__box">
                     {!! Form::textarea('comment', old('comment'), ['placeholder' => 'Your comment here']) !!}

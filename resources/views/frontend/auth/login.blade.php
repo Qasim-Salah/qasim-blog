@@ -7,13 +7,13 @@
                 <div class="col-lg-6 offset-md-3">
                     <div class="my__account__wrapper">
                         <h3 class="account__title">Login</h3>
-                        {!! Form::open(['route' => 'frontend.login', 'method' => 'post']) !!}
+                        {!! Form::open(['route' => 'Frontend.login', 'method' => 'post']) !!}
 
                         <div class="account__form">
                             <div class="input__box">
-                                {!! Form::label('username', 'Username *') !!}
-                                {!! Form::text('username', old('username')) !!}
-                                @error('username')<span class="text-danger">{{ $message }}</span>@enderror
+                                {!! Form::label('email', 'email *') !!}
+                                {!! Form::text('email', old('email')) !!}
+                                @error('name')<span class="text-danger">{{ $message }}</span>@enderror
                             </div>
                             <div class="input__box">
                                 {!! Form::label('password', 'Password *') !!}
