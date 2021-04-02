@@ -5,10 +5,10 @@ namespace App\Http\Controllers\Api\General;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\General\PostResource;
 use App\Http\Resources\General\PostsResource;
-use App\Models\Category;
-use App\Models\Contact;
-use App\Models\Post;
-use App\Models\User;
+use App\Models\Category as CategoryModel;
+use App\Models\Contact as ContactModel;
+use App\Models\Post as PostModel;
+use App\Models\User as UserModel;
 use App\Notifications\NewCommentForAdminNotify;
 use App\Notifications\NewCommentForPostOwner;
 use App\Traits\GeneralTrait;
@@ -21,54 +21,49 @@ class GeneralController extends Controller
 
     public function get_posts()
     {
-        $posts = Post::whereHas('category', function ($query) {
-            $query->whereStatus(1);
+        $posts = PostModel::whereHas('category', function ($query) {
+            $query->active();
         })
             ->whereHas('user', function ($query) {
-                $query->whereStatus(1);
+                $query->active();
             })
-            ->post()->orderBy('id', 'desc')->paginate(5);
+            ->post()->active()->latest()->paginate(PAGINATION_COUNT);
 
-        if ($posts->count() > 0) {
-            return $this->returnData('get_posts',PostsResource::collection($posts));
-        } else {
-            return $this->returnError(201, 'No posts found');
-        }
-
+        if ($posts)
+            return $this->returnData('get_posts', PostsResource::collection($posts));
+        return $this->returnError(201, 'No posts found');
 
     }
 
     public function search(Request $request)
     {
-        $keyword = !empty($request->keyword) ? $request->keyword : null;
-        ##GlobalScope##
-        $posts = Post::where('title', 'LIKE', '%' . $keyword . '%')->orWhere('description', 'LIKE', '%' . $keyword . '%')->with(['media', 'user']);
-        $posts = $posts->post()->paginate(PAGINATION_COUNT);
 
-        if ($posts->count() > 0) {
+        $keyword = ($request->keyword);
+        if ($keyword) {
+            $posts = PostModel::active()->with(['user' => function ($q) {
+                $q->active();
+            }])
+                ->where('title', 'LIKE', '%' . $keyword . '%')
+                ->orWhere('description', 'LIKE', '%' . $keyword . '%');
+            $posts = $posts->post()->paginate(PAGINATION_COUNT);
+
             return $this->returnData('search', PostsResource::collection($posts));
-        } else {
-            return $this->returnError('E001', 'No posts found');
-
         }
     }
 
     public function category($slug)
     {
-        try {
-            $category = Category::where('slug', $slug)->orWhere('id', $slug)->first()->id;
+        $category = CategoryModel::active()->where('slug', $slug)->orWhere('id', $slug)->first()->id;
 
-            if ($category) {
-                $posts = Post::with(['media', 'user'])
-                    ->where('category_id', $category)
-                    ->post();
+        if ($category) {
+            $posts = PostModel::with(['user'])
+                ->where('category_id', $category)
+                ->post()
+                ->paginate(PAGINATION_COUNT);
 
-                return $this->returnData('category', PostsResource::collection($posts));
-            }
-        } catch (\Exception $ex) {
-
-            return $this->returnError('E001', 'Something was wrong');
+            return $this->returnData('category', PostsResource::collection($posts));
         }
+        return $this->returnError('E001', 'Something was wrong');
     }
 
     public function archive($date)
@@ -77,53 +72,53 @@ class GeneralController extends Controller
         $month = $exploded_date[0];
         $year = $exploded_date[1];
 
-        $posts = Post::with(['media', 'user'])
+        $posts = PostModel::with(['user'])
             ->whereMonth('created_at', $month)
             ->whereYear('created_at', $year)
             ->post()
+            ->active()
             ->get();
 
-        if ($posts->count() > 0) {
+        if ($posts)
             return $this->returnData('archive', PostsResource::collection($posts));
-        } else {
-            return $this->returnError('E001', 'Something was wrong');
-        }
+        return $this->returnError('E001', 'Something was wrong');
 
     }
 
     public function author($username)
     {
-        $user = User::whereUsername($username)->first();
+        $user = UserModel::active()->where('name', $username)->first()->id;
 
         if ($user) {
-            $posts = Post::with(['media', 'user'])
-                ->whereUserId($user->id)
+            $posts = PostModel::with(['user'])
+                ->where('user_id', $user)
                 ->post()
+                ->active()
                 ->get();
 
-            if ($posts->count() > 0) {
-                return $this->returnData('author', PostsResource::collection($posts));
-            } else {
-                return $this->returnError('E001', 'Something was wrong');
-            }
+            return $this->returnData('author', PostsResource::collection($posts));
         }
+        return $this->returnError('E001', 'Something was wrong');
+
     }
 
     public function show_post($slug)
     {
-        try {
-            ##GlobalScope##
-            $post = Post::with(['category', 'media', 'user', 'approved_comments']);
+        $post = PostModel::active()->where('slug', $slug)->with
+        (['category' => function ($q) {
+            $q->active();
+        },
+            'user' => function ($q) {
+                $q->active();
+            },
+            'comments' => function ($q) {
+                $q->active()->orderBy('id', 'desc');
+            }])->first();
 
-            $post = $post->where('slug', $slug)->post()->first();
+        if (!$post)
+            return $this->returnData('show_post', new PostResource($post));
+        return $this->returnError(201, 'No posts found');
 
-            if ($post)
-                return $this->returnData('show_post', new PostResource($post));
-
-        } catch (\Exception $ex) {
-
-            return $this->returnError(201, 'No posts found');
-        }
     }
 
     public function store_comment(Request $request, $slug)
@@ -140,7 +135,7 @@ class GeneralController extends Controller
             return $this->returnValidationError($code, $validation);
         }
 
-        $post = Post::where('slug', $slug)->post()->first();
+        $post = PostModel::where('slug', $slug)->post()->first();
         if ($post) {
 
             $userId = auth()->check() ? auth()->id() : null;
@@ -152,26 +147,17 @@ class GeneralController extends Controller
             $data['post_id'] = $post->id;
             $data['user_id'] = $userId;
 
-            $comment = $post->comments()->create($data);
+            $post->comments()->create($data);
 
-            if (auth()->guest() || auth()->id() != $post->user_id) {
-                $post->user->notify(new NewCommentForPostOwner($comment));
-            }
 
-            User::whereHas('roles', function ($query) {
-                $query->whereIn('name', ['admin']);
-            })->each(function ($admin, $key) use ($comment) {
-                $admin->notify(new NewCommentForAdminNotify($comment));
-            });
             return $this->returnSuccessMessage('Comment added successfully', 200);
         }
         return $this->returnError(201, 'Something was wrong');
-
     }
 
     public function do_contact(Request $request)
     {
-         $rules=[
+        $rules = [
             'name' => 'required',
             'email' => 'required|email',
             'mobile' => 'nullable|numeric',
@@ -189,7 +175,7 @@ class GeneralController extends Controller
         $data['title'] = $request->title;
         $data['message'] = $request->message;
 
-        Contact::create($data);
+        ContactModel::create($data);
         return $this->returnSuccessMessage('Message sent successfully', 200);
 
     }

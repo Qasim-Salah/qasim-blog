@@ -5,10 +5,11 @@ namespace App\Models;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Passport\HasApiTokens;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
-    use Notifiable;
+    use HasApiTokens,  Notifiable;
 
     protected $fillable = [
         'name',
@@ -53,6 +54,11 @@ class User extends Authenticatable implements MustVerifyEmail
     public function status()
     {
         return $this->status == '1' ? 'Active' : 'Inactive';
+    }
+
+    public function userImage()
+    {
+        return $this->image != '' ? asset('assets/users/' . $this->image) : asset('assets/users/default.png');
     }
 
 }

@@ -78,7 +78,7 @@ class IndexController extends Controller
             ->whereYear('created_at', $year)
             ->post()
             ->active()
-            ->paginate(PAGINATION_COUNT);
+            ->get();
         return view('frontend.index', compact('posts'));
 
     }
@@ -92,7 +92,7 @@ class IndexController extends Controller
                 ->where('user_id', $user)
                 ->post()
                 ->active()
-                ->paginate(PAGINATION_COUNT);
+                ->get();
 
             return view('frontend.index', compact('posts'));
         }

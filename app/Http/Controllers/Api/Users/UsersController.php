@@ -9,21 +9,17 @@ use App\Http\Resources\Users\UsersCategoriesResource;
 use App\Http\Resources\Users\UsersPostCommentsResource;
 use App\Http\Resources\Users\UsersPostResource;
 use App\Http\Resources\Users\UsersPostsResource;
-use App\Models\Category;
-use App\Models\Comment;
-use App\Models\Post;
-use App\Models\PostMedia;
-use App\Scopes\GlobalScope;
+use App\Models\Category as CategoryModel;
+use App\Models\Comment as CommentModel;
+use App\Models\Post as PostModel;
 use App\Traits\GeneralTrait;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
-use Intervention\Image\Facades\Image;
 use Stevebauman\Purify\Facades\Purify;
 
 class UsersController extends Controller
@@ -51,55 +47,44 @@ class UsersController extends Controller
 
     public function update_user_information(Request $request)
     {
-        try {
-            $rules = [
-                'name' => 'required',
-                'email' => 'required|email',
-                'mobile' => 'required|numeric',
-                'bio' => 'nullable|min:10',
-                'receive_email' => 'required',
-                'user_image' => 'nullable|image|max:20000,mimes:jpeg,jpg,png'
-            ];
-            $validation = Validator::make($request->all(), $rules);
-            if ($validation->fails()) {
-                $code = $this->returnCodeAccordingToInput($validation);
-                return $this->returnValidationError($code, $validation);
-            }
-
-            $data['name'] = $request->name;
-            $data['email'] = $request->email;
-            $data['mobile'] = $request->mobile;
-            $data['bio'] = $request->bio;
-            $data['receive_email'] = $request->receive_email;
-
-            if ($image = $request->file('user_image')) {
-                if (auth()->user()->user_image != '') {
-                    if (File::exists('/assets/users/' . auth()->user()->user_image)) {
-                        unlink('/assets/users/' . auth()->user()->user_image);
-                    }
-                }
-                $filename = Str::slug(auth()->user()->username) . '.' . $image->getClientOriginalExtension();
-                $path = public_path('assets/users/' . $filename);
-                Image::make($image->getRealPath())->resize(300, 300, function ($constraint) {
-                    $constraint->aspectRatio();
-                })->save($path, 100);
-
-                $data['user_image'] = $filename;
-            }
-
-            $update = auth()->user()->update($data);
-
-            if ($update)
-                return $this->returnSuccessMessage('Information updated successfully', 200);
-
-        } catch (\Exception $ex) {
-            return $this->returnError('E001', 'Something was wrong');
+        $rules = [
+            'name' => 'required',
+            'email' => 'required|email',
+            'mobile' => 'required|numeric',
+            'bio' => 'nullable|min:10',
+            'receive_email' => 'required',
+            'image' => 'nullable|image|max:20000,mimes:jpeg,jpg,png'
+        ];
+        $validation = Validator::make($request->all(), $rules);
+        if ($validation->fails()) {
+            $code = $this->returnCodeAccordingToInput($validation);
+            return $this->returnValidationError($code, $validation);
         }
+        $fileName = "";
+        if ($request->has('image')) {
+            ###helper###
+            $fileName = uploadImage('register', $request->image);
+        }
+
+        $data['name'] = $request->name;
+        $data['email'] = $request->email;
+        $data['mobile'] = $request->mobile;
+        $data['bio'] = $request->bio;
+        $data['image'] = $fileName;
+
+        $data['receive_email'] = $request->receive_email;
+
+        $update = auth()->user()->update($data);
+
+        if ($update)
+            return $this->returnSuccessMessage('Information updated successfully', 200);
+
+        return $this->returnError('E001', 'Something was wrong');
+
     }
 
     public function update_user_password(Request $request)
     {
-        try {
             $rules = [
                 'current_password' => 'required',
                 'password' => 'required|confirmed'
@@ -117,9 +102,8 @@ class UsersController extends Controller
             }
             if ($update)
                 return $this->returnSuccessMessage('Password updated successfully', 200);
-        } catch (\Exception $ex) {
             return $this->returnError('E001', 'Something was wrong');
-        }
+
     }
 
     public function my_posts()
@@ -131,278 +115,199 @@ class UsersController extends Controller
 
     public function create_post()
     {
-        $categories = Category::get();
+        $categories = CategoryModel::acyive()->get();
 
-        return $this->returnData( 'create_post',UsersCategoriesResource::collection($categories));
+        return $this->returnData('create_post', UsersCategoriesResource::collection($categories));
     }
 
     public function store_post(Request $request)
     {
-        try {
-            $rules = [
-                'title' => 'required',
-                'description' => 'required|min:50',
-                'status' => 'required',
-                'comment_able' => 'required',
-                'category_id' => 'required',
-            ];
-            $validation = Validator::make($request->all(), $rules);
-            if ($validation->fails()) {
-                $code = $this->returnCodeAccordingToInput($validation);
-                return $this->returnValidationError($code, $validation);
-            }
-            DB::beginTransaction();
+        $rules = [
+            'title' => 'required',
+            'description' => 'required|min:50',
+            'status' => 'required',
+            'image' => 'nullable|mimes:jpg,jpeg,png,gif|max:20000',
+            'comment_able' => 'required',
+            'category_id' => 'required',
+        ];
+        $validation = Validator::make($request->all(), $rules);
+        if ($validation->fails()) {
+            $code = $this->returnCodeAccordingToInput($validation);
+            return $this->returnValidationError($code, $validation);
+        }
+        $fileName = "";
+        if ($request->has('image')) {
+            ###helper###
+            $fileName = uploadImage('posts', $request->image);
+        }
+        $data['title'] = Purify::clean($request->title);
+        $data['description'] = Purify::clean($request->description);
+        $data['status'] = $request->status;
+        $data['image'] = $fileName;
+        $data['comment_able'] = $request->comment_able;
+        $data['category_id'] = $request->category_id;
+
+
+        $post = auth()->user()->posts()->create($data);
+
+        if ($request->status == 1)
+            Cache::forget('recent_posts');
+
+        if ($post)
+            return $this->returnSuccessMessage('Post created successfully', 200);
+
+        return $this->returnError('E001', 'Something was wrong');
+
+    }
+
+    public function edit_post($post_id)
+    {
+        $post = PostModel::where('slug', $post_id)->orWhere('id', $post_id)->where('user_Id', auth()->id())->first();
+
+        if ($post) {
+            $categories = CategoryModel::active()->get();
+            return ['post' => new UsersPostResource($post), 'categories' => UsersCategoriesResource::collection($categories)];
+        }
+
+        return $this->returnError('E001', 'Unauthorized');
+    }
+
+    public function update_post(Request $request, $post_id)
+    {
+        $rules = [
+            'title' => 'required',
+            'description' => 'required|min:50',
+            'status' => 'required',
+            'comment_able' => 'required',
+            'image' => 'nullable|mimes:jpg,jpeg,png,gif|max:20000',
+            'category_id' => 'required',
+        ];
+        $validation = Validator::make($request->all(), $rules);
+        if ($validation->fails()) {
+            $code = $this->returnCodeAccordingToInput($validation);
+            return $this->returnValidationError($code, $validation);
+        }
+        $post = PostModel::where('slug', $post_id)->orWhere('id', $post_id)->where('user_Id', auth()->id())->first();
+
+        $fileName = "";
+        if ($request->has('image')) {
+            ###helper###
+            $fileName = uploadImage('posts', $request->image);
+        }
+
+        if ($post) {
             $data['title'] = Purify::clean($request->title);
             $data['description'] = Purify::clean($request->description);
             $data['status'] = $request->status;
             $data['comment_able'] = $request->comment_able;
             $data['category_id'] = $request->category_id;
+            $data['image'] = $fileName;
 
-            $post = auth()->user()->posts()->create($data);
+            $post->update($data);
 
-            if ($request->images && count($request->images) > 0) {
-                $i = 1;
-                foreach ($request->images as $file) {
-                    $filename = $post->slug . '-' . time() . '-' . $i . '.' . $file->getClientOriginalExtension();
-                    $file_size = $file->getSize();
-                    $file_type = $file->getMimeType();
-                    $path = public_path('assets/posts/' . $filename);
-                    Image::make($file->getRealPath())->resize(800, null, function ($constraint) {
-                        $constraint->aspectRatio();
-                    })->save($path, 100);
-
-                    $post->media()->create([
-                        'file_name' => $filename,
-                        'file_size' => $file_size,
-                        'file_type' => $file_type,
-                    ]);
-                    $i++;
-                }
-            }
-
-            if ($request->status == 1) {
-                Cache::forget('recent_posts');
-            }
-            DB::commit();
-
-            return $this->returnSuccessMessage('Post created successfully', 200);
-
-        } catch (\Exception $ex) {
-
-            DB::rollback();
-            return $this->returnError('E001', 'Something was wrong');
+            return $this->returnSuccessMessage('Post update successfully', 200);
         }
-    }
 
-    public function edit_post($post_id)
-    {
-        try {
-            $post = Post::where('slug', $post_id)->orWhere('id', $post_id)->where('user_Id', auth()->id())->first();
+        return $this->returnError('E001', 'Something was wrong');
 
-            if ($post) {
-                $categories = Category::get();
-                return ['post' => new UsersPostResource($post), 'categories' => UsersCategoriesResource::collection($categories)];
-            }
-        } catch (\Exception $ex) {
-
-            return $this->returnError('E001', 'Unauthorized');
-        }
-    }
-
-    public function update_post(Request $request, $post_id)
-    {
-        try {
-            $rules = [
-                'title' => 'required',
-                'description' => 'required|min:50',
-                'status' => 'required',
-                'comment_able' => 'required',
-                'category_id' => 'required',
-            ];
-            $validation = Validator::make($request->all(), $rules);
-            if ($validation->fails()) {
-                $code = $this->returnCodeAccordingToInput($validation);
-                return $this->returnValidationError($code, $validation);
-            }
-
-            $post = Post::where('slug', $post_id)->orWhere('id', $post_id)->where('user_Id', auth()->id())->first();
-            if ($post) {
-                $data['title'] = Purify::clean($request->title);
-                $data['description'] = Purify::clean($request->description);
-                $data['status'] = $request->status;
-                $data['comment_able'] = $request->comment_able;
-                $data['category_id'] = $request->category_id;
-                DB::beginTransaction();
-                $post->update($data);
-
-                if ($request->images && count($request->images) > 0) {
-                    $i = 1;
-                    foreach ($request->images as $file) {
-                        $filename = $post->slug . '-' . time() . '-' . $i . '.' . $file->getClientOriginalExtension();
-                        $file_size = $file->getSize();
-                        $file_type = $file->getMimeType();
-                        $path = public_path('assets/posts/' . $filename);
-                        Image::make($file->getRealPath())->resize(800, null, function ($constraint) {
-                            $constraint->aspectRatio();
-                        })->save($path, 100);
-
-                        $post->media()->create([
-                            'file_name' => $filename,
-                            'file_size' => $file_size,
-                            'file_type' => $file_type,
-                        ]);
-                        $i++;
-                    }
-                }
-                DB::commit();
-                return $this->returnSuccessMessage('Post update successfully', 200);
-            }
-        } catch (\Exception $ex) {
-            DB::rollback();
-
-            return $this->returnError('E001', 'Something was wrong');
-        }
     }
 
     public function delete_post($post_id)
     {
-        try {
-            $post = Post::where('slug', $post_id)->orWhere('id', $post_id)->where('user_Id', auth()->id())->first();
+        $post = PostModel::where('slug', $post_id)->orWhere('id', $post_id)->where('user_Id', auth()->id())->first();
 
-            if ($post) {
-                if ($post->media->count() > 0) {
-                    foreach ($post->media as $media) {
-                        if (File::exists('assets/posts/' . $media->file_name)) {
-                            unlink('assets/posts/' . $media->file_name);
-                        }
-                    }
-                }
-                DB::beginTransaction();
-                $post->delete();
-                $post->media()->delete();
-                $post->comments()->delete();
+        if ($post) {
+            $post->delete();
+            $post->comments()->delete();
+            return $this->returnSuccessMessage('Post deleted successfully', 200);
 
-                DB::commit();
-
-                return $this->returnSuccessMessage('Post deleted successfully', 200);
-            }
-        } catch (\Exception $ex) {
-            DB::rollback();
-            return $this->returnError('E001', 'Something was wrong');
         }
-    }
 
-    public function delete_post_media($media_id)
-    {
-        try {
-            $media = PostMedia::where('id', $media_id)->first();
-            if ($media) {
-                if (File::exists('assets/posts/' . $media->file_name)) {
-                    unlink('assets/posts/' . $media->file_name);
-                }
-                $media->delete();
-                return $this->returnSuccessMessage('Media deleted successfully', 200);
-            }
-        } catch (\Exception $ex) {
-            return $this->returnError('E001', 'Something was wrong');
-        }
+        return $this->returnError('E001', 'Something was wrong');
+
     }
 
     public function all_comments(Request $request)
     {
-        $comments = Comment::query();
+        $comments = CommentModel::query();
 
-        if (isset($request->post) && $request->post != '') {
+        if (!empty($request->post)) {
             $comments = $comments->wherePostId($request->post);
         } else {
             $posts_id = auth()->user()->posts->pluck('id')->toArray();
             $comments = $comments->whereIn('post_id', $posts_id);;
         }
-        $comments = $comments->withoutGlobalScope(GlobalScope::class)->get();
-
-
-        return $this->returnData('all_comment',UsersPostCommentsResource::collection($comments));
+        $comments = $comments->latest();
+        return $this->returnData('all_comment', UsersPostCommentsResource::collection($comments));
     }
 
     public function edit_comment($id)
     {
-        try {
+        $comment = CommentModel::where('id', $id)->whereHas('post', function ($query) {
+            $query->where('posts.user_id', auth()->id());
+        })->first();
 
-            $comment = Comment::where('id', $id)->whereHas('post', function ($query) {
-                $query->where('posts.user_id', auth()->id());
-            })->withoutGlobalScope(GlobalScope::class)->first();
+        if ($comment)
+            return $this->returnData('edit_comment', new UsersPostCommentsResource($comment));
 
-            if ($comment) {
-                return $this->returnData('edit_comment', new UsersPostCommentsResource($comment));
-            }
-        } catch (\Exception $ex) {
-            return $this->returnError('E001', 'Something was wrong');
-        }
+        return $this->returnError('E001', 'Something was wrong');
     }
 
     public function update_comment(Request $request, $comment_id)
     {
-        try {
-            $rules = [
-                'name' => 'required',
-                'email' => 'required|email',
-                'url' => 'nullable|url',
-                'status' => 'required',
-                'comment' => 'required',
-            ];
-            $validation = Validator::make($request->all(), $rules);
-            if ($validation->fails()) {
-                $code = $this->returnCodeAccordingToInput($validation);
-                return $this->returnValidationError($code, $validation);
-            }
-
-            $comment = Comment::where('id', $comment_id)->whereHas('post', function ($query) {
-                $query->where('posts.user_id', auth()->id());
-            })->withoutGlobalScope(GlobalScope::class)->first();
-
-            if ($comment) {
-                $data['name'] = $request->name;
-                $data['email'] = $request->email;
-                $data['url'] = $request->url != '' ? $request->url : null;
-                $data['status'] = $request->status;
-                $data['comment'] = Purify::clean($request->comment);
-
-                $comment->update($data);
-
-                if ($request->status == 1) {
-                    Cache::forget('recent_comments');
-                }
-                return $this->returnSuccessMessage('Comment updated successfully', 200);
-            }
-        } catch (\Exception $ex) {
-            return $this->returnError('E001', 'Something was wrong');
+        $rules = [
+            'name' => 'required',
+            'email' => 'required|email',
+            'url' => 'nullable|url',
+            'status' => 'required',
+            'comment' => 'required',
+        ];
+        $validation = Validator::make($request->all(), $rules);
+        if ($validation->fails()) {
+            $code = $this->returnCodeAccordingToInput($validation);
+            return $this->returnValidationError($code, $validation);
         }
+
+        $comment = CommentModel::where('id', $comment_id)->whereHas('post', function ($query) {
+            $query->where('posts.user_id', auth()->id());
+        })->first();
+
+        if ($comment) {
+            $data['name'] = $request->name;
+            $data['email'] = $request->email;
+            $data['url'] = $request->url != '' ? $request->url : null;
+            $data['status'] = $request->status;
+            $data['comment'] = Purify::clean($request->comment);
+
+            $comment->update($data);
+
+            if ($request->status == 1) {
+                Cache::forget('recent_comments');
+            }
+            return $this->returnSuccessMessage('Comment updated successfully', 200);
+        }
+        return $this->returnError('E001', 'Something was wrong');
 
     }
 
     public function delete_comment($id)
     {
-        try {
-            $comment = Comment::withoutGlobalScope(GlobalScope::class)->where('id', $id)->whereHas('post', function ($query) {
-                $query->where('posts.user_id', auth()->id());
-            })->first();
+        $comment = CommentModel::where('id', $id)->whereHas('post', function ($query) {
+            $query->where('posts.user_id', auth()->id());
+        })->first();
 
-            if ($comment) {
-                $comment->delete();
-
-                Cache::forget('recent_comments');
-                return $this->returnSuccessMessage('Comment deleted successfully', 200);
-            }
-        } catch (\Exception $ex) {
-            return $this->returnError('E001', 'Something was wrong');
+        if ($comment) {
+            $comment->delete();
+            Cache::forget('recent_comments');
+            return $this->returnSuccessMessage('Comment deleted successfully', 200);
         }
+        return $this->returnError('E001', 'Something was wrong');
     }
-
 
     public function logout(Request $request)
     {
         $request->user()->token()->revoke();
-        return response()->json(['errors' => false, 'message' => 'Successfully logged out']);
+        return $this->returnSuccessMessage(' logout successfully', 200);
     }
 
 }

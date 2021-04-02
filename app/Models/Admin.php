@@ -6,9 +6,8 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class Admin extends Authenticatable
 {
-
-
     protected $table = 'admins';
+
     protected $fillable = ['name', 'email', 'status', 'image', 'password', 'role_id'];
 
     public $timestamps = true;
@@ -42,6 +41,7 @@ class Admin extends Authenticatable
     {
         return ($val !== null) ? asset('assets/admins/' . $val) : "";
     }
+
     public function hasAbility($permissions)    //products  //mahoud -> admin can't see brands
     {
         $role = $this->role;
@@ -59,7 +59,6 @@ class Admin extends Authenticatable
         }
         return false;
     }
-
 
 
 }
